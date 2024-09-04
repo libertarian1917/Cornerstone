@@ -236,6 +236,10 @@ void ssd1306_TestFonts3() {
 }
 
 
+
+
+
+
 void ssd1306_TestMenu(char *first_row, char *second_row, Menu_Option *current_option) {
 #ifdef SSD1306_INCLUDE_FONT_11x18
 
@@ -254,6 +258,46 @@ void ssd1306_TestMenu(char *first_row, char *second_row, Menu_Option *current_op
     ssd1306_UpdateScreen();
 #endif
 }
+
+
+void ssd1306_TestIntervalSetting(int *timeBar, unsigned int *timeInterval) {
+
+	ssd1306_Fill(Black);
+	ssd1306_SetCursor(44, 4);
+	ssd1306_FillRectangle(4, 20, 36, 44, White);
+
+	ssd1306_FillRectangle(53, 20, 84, 44, White);
+
+	ssd1306_FillRectangle(93, 20, 124, 44, White);
+
+	char str[2] = "";
+
+	sprintf(str, "%d", timeBar[0]);
+	ssd1306_WriteString(str, Font_16x24, Black);
+
+	ssd1306_WriteString(":", Font_16x24, Black);
+
+	sprintf(str, "%d", timeBar[1]);
+	ssd1306_WriteString(str, Font_16x24, Black);
+
+	ssd1306_WriteString("OK", Font_16x24, Black);
+
+}
+
+
+void ssd1306_TestDurationSetting(int *timeBar, unsigned int *timeDuration) {
+
+}
+
+
+void ssd1306_TurnOff() {
+	ssd1306_Fill(Black);
+	ssd1306_UpdateScreen();
+}
+
+
+
+
 
 
 void ssd1306_TestFPS() {

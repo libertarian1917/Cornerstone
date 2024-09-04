@@ -61,20 +61,56 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN Private defines */
 
+
+
+
+// ENUM DEFINITION //
+void getTimeFromMS(unsigned int, int*);
+
 typedef enum {
-	READY = 0,
+	CLOSE = 0,
 	INTERVAL = 1,
 	DURATION = 2,
 	LAST_TIME = 3
 } Menu_Option;
 
+typedef enum {
+	MENU = 0,
+	INTERVAL_SETTING = 1,
+	DURATION_SETTING = 2
+
+} Setting_Option;
+// //
+
+// MENU VARIABLES ///
 extern const int MENU_COUNT;
 
 extern char *menu_list[4][2];
 
-extern bool buttonPressed;
+extern Menu_Option *menu_option;
+// ///
 
-extern Menu_Option *def_option;
+// Logical variables for button state tracking
+extern bool pressedUpButton, pressedDownButton, pressedLeftButton, pressedRightButton;
+
+extern Setting_Option *setting_option;
+
+// TIME TRACKING VARIABLES ////
+extern unsigned int TimeInterval;
+
+extern unsigned int Duration;
+
+extern int TimeBar[2];
+
+extern unsigned int CurrentTime;
+
+extern unsigned int TimeLeft;
+// ////
+
+extern int DisplayShutDownTime;
+
+
+
 
 /* USER CODE END Private defines */
 

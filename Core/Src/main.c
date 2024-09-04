@@ -57,6 +57,13 @@ static void MX_I2C1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void getTimeFromMS(unsigned int ms, int *timeBar) {
+	int hours = ms / 3600000;
+	int minutes = (ms % 3600000) / 60000;
+	timeBar[0] = hours;
+	timeBar[1] = minutes;
+}
+
 char *menu_list[4][2] = {
 						{"Fertig", ""},
 						{"Giess-", "Intervall"},
@@ -64,13 +71,23 @@ char *menu_list[4][2] = {
 						{"12:30"}
 };
 
-Menu_Option *def_option = READY;
+Menu_Option *menu_option = CLOSE;
+
+Setting_Option *setting_option = MENU;
 
 const int MENU_COUNT = 3;
 
-bool pressedUpButton = false;
+bool pressedUpButton = false, pressedDownButton = false, pressedLeftButton = false, pressedRightButton = false;
 
-bool pressedDownButton = false;
+unsigned int TimeInterval = 86400000;
+unsigned int Duration = 20000;
+
+int timeBar = {12, 32};
+
+unsigned int CurrentTime = 0;
+unsigned int TimeLeft = 0;
+int DisplayShutDownTime = 0;
+
 /* USER CODE END 0 */
 
 /**
@@ -112,33 +129,70 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
+	  // UP
 	  HAL_Delay(100);
-	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_9) == GPIO_PIN_RESET)
+	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_14) == GPIO_PIN_RESET)
       {
 		  pressedUpButton = true;
+		  continue;
       }
 	  else if (pressedUpButton == true)
 	  {
 		  pressedUpButton = false;
-		  if(def_option > 0) {
-			  def_option --;
-			  ssd1306_TestMenu(menu_list[(int)def_option][0], menu_list[(int)def_option][1], def_option);
+		  if(menu_option > 0) {
+			  menu_option --;
+			  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 		  }
+		  continue;
 	  }
-
-	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_8) == GPIO_PIN_RESET)
+	  // DOWN
+	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_13) == GPIO_PIN_RESET)
       {
 		  pressedDownButton = true;
+		  continue;
       }
 	  else if (pressedDownButton == true)
 	  {
 		  pressedDownButton = false;
-		  if(def_option < MENU_COUNT) {
-			  def_option ++;
-			  ssd1306_TestMenu(menu_list[(int)def_option][0], menu_list[(int)def_option][1], def_option);
+		  if(menu_option < MENU_COUNT) {
+			  menu_option ++;
+			  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 		  }
+		  continue;
+	  }
+	  // LEFT (BACK)
+	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET)
+      {
+		  pressedLeftButton = true;
+		  continue;
+      }
+	  else if (pressedLeftButton == true)
+	  {
+		  pressedLeftButton = false;
+		  ssd1306_TurnOff();
+		  menu_option = CLOSE;
+		  continue;
+	  }
+	  // RIGHT (OKAY)
+	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_15) == GPIO_PIN_RESET)
+      {
+		  pressedRightButton = true;
+		  continue;
+      }
+	  else if (pressedRightButton == true)
+	  {
+		  pressedRightButton = false;
+		  ssd1306_TestIntervalSetting(&timeBar, &TimeInterval);
+		  continue;
 	  }
 
+	  /*if(DisplayShutDownTime == 99) {
+		  ssd1306_TurnOff();
+	  }
+	  if(DisplayShutDownTime < 100) {
+		  DisplayShutDownTime++;
+	  }*/
 
     /* USER CODE BEGIN 3 */
   }
