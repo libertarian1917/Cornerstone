@@ -61,14 +61,20 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN Private defines */
 
+void getTimeFromMS(unsigned int*, int**);
 
+void ApplyNewInterval(void);
+void ApplyNewDuration(void);
+
+void ResetNewInterval(void);
+void ResetNewDuration(void);
 
 
 // ENUM DEFINITION //
-void getTimeFromMS(unsigned int, int*);
 
 typedef enum {
-	CLOSE = 0,
+	OFF = -1,
+	READY = 0,
 	INTERVAL = 1,
 	DURATION = 2,
 	LAST_TIME = 3
@@ -80,6 +86,13 @@ typedef enum {
 	DURATION_SETTING = 2
 
 } Setting_Option;
+
+typedef enum {
+	D = 0, // days
+	H = 1, // hours
+	M = 2, // minutes
+	S = 3  // seconds
+};
 // //
 
 // MENU VARIABLES ///
@@ -96,11 +109,15 @@ extern bool pressedUpButton, pressedDownButton, pressedLeftButton, pressedRightB
 extern Setting_Option *setting_option;
 
 // TIME TRACKING VARIABLES ////
-extern unsigned int TimeInterval;
+extern unsigned int Interval;
+extern unsigned int NewInterval;
+extern unsigned int MaxInterval;
 
 extern unsigned int Duration;
+extern unsigned int NewDuration;
+extern unsigned int MaxDuration;
 
-extern int TimeBar[2];
+extern int *timeBar[2];
 
 extern unsigned int CurrentTime;
 

@@ -131,6 +131,12 @@ const unsigned char bitmap_arrow_up_64x14 [] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
+
+Time_Inerval_Section *intervalSection = HOURS;
+
+Time_Duration_Section *durationSection = SECONDS;
+
+
 void ssd1306_TestBorder() {
     ssd1306_Fill(Black);
    
@@ -236,8 +242,8 @@ void ssd1306_TestFonts3() {
 }
 
 
-
-
+//////////////////////////////
+///////////////////
 
 
 void ssd1306_TestMenu(char *first_row, char *second_row, Menu_Option *current_option) {
@@ -260,10 +266,10 @@ void ssd1306_TestMenu(char *first_row, char *second_row, Menu_Option *current_op
 }
 
 
-void ssd1306_TestIntervalSetting(int *timeBar, unsigned int *timeInterval) {
+void ssd1306_TestIntervalSetting(int **timeBar, unsigned int *timeInterval) {
 
 	ssd1306_Fill(Black);
-	ssd1306_SetCursor(44, 4);
+
 	ssd1306_FillRectangle(4, 20, 36, 44, White);
 
 	ssd1306_FillRectangle(53, 20, 84, 44, White);
@@ -272,6 +278,7 @@ void ssd1306_TestIntervalSetting(int *timeBar, unsigned int *timeInterval) {
 
 	char str[2] = "";
 
+	ssd1306_SetCursor(4, 20);
 	sprintf(str, "%d", timeBar[0]);
 	ssd1306_WriteString(str, Font_16x24, Black);
 
@@ -281,11 +288,11 @@ void ssd1306_TestIntervalSetting(int *timeBar, unsigned int *timeInterval) {
 	ssd1306_WriteString(str, Font_16x24, Black);
 
 	ssd1306_WriteString("OK", Font_16x24, Black);
-
+	ssd1306_UpdateScreen();
 }
 
 
-void ssd1306_TestDurationSetting(int *timeBar, unsigned int *timeDuration) {
+void ssd1306_TestDurationSetting(int **timeBar, unsigned int *timeDuration) {
 
 }
 
@@ -296,8 +303,8 @@ void ssd1306_TurnOff() {
 }
 
 
-
-
+///////////////////
+//////////////////////////////
 
 
 void ssd1306_TestFPS() {
