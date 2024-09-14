@@ -91,24 +91,26 @@ typedef enum {
 	D = 0, // days
 	H = 1, // hours
 	M = 2, // minutes
-	S = 3  // seconds
-};
+	//S = 3  // seconds
+} Time_Unit;
 // //
 
-// MENU VARIABLES ///
+// MENU VARIABLES // //
 extern const int MENU_COUNT;
 
 extern char *menu_list[4][2];
 
 extern Menu_Option *menu_option;
-// ///
+// //
 
 // Logical variables for button state tracking
 extern bool pressedUpButton, pressedDownButton, pressedLeftButton, pressedRightButton;
 
 extern Setting_Option *setting_option;
 
-// TIME TRACKING VARIABLES ////
+extern Time_Unit *first_time_unit;
+
+// TIME TRACKING VARIABLES // // //
 extern unsigned int Interval;
 extern unsigned int NewInterval;
 extern unsigned int MaxInterval;
@@ -122,10 +124,9 @@ extern int *timeBar[2];
 extern unsigned int CurrentTime;
 
 extern unsigned int TimeLeft;
-// ////
+// // //
 
 extern int DisplayShutDownTime;
-
 
 
 

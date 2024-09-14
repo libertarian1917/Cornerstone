@@ -270,21 +270,21 @@ void ssd1306_TestIntervalSetting(int **timeBar, unsigned int *timeInterval) {
 
 	ssd1306_Fill(Black);
 
-	ssd1306_FillRectangle(4, 20, 36, 44, White);
+	ssd1306_FillRectangle( 4, 20,  36, 44, White);
 
-	ssd1306_FillRectangle(53, 20, 84, 44, White);
+	ssd1306_FillRectangle(51, 20,  84, 44, White);
 
 	ssd1306_FillRectangle(93, 20, 124, 44, White);
 
 	char str[2] = "";
 
 	ssd1306_SetCursor(4, 20);
-	sprintf(str, "%d", timeBar[0]);
+	sprintf(str, "%02d", timeBar[0]);
 	ssd1306_WriteString(str, Font_16x24, Black);
 
 	ssd1306_WriteString(":", Font_16x24, Black);
 
-	sprintf(str, "%d", timeBar[1]);
+	sprintf(str, "%02d", timeBar[1]);
 	ssd1306_WriteString(str, Font_16x24, Black);
 
 	ssd1306_WriteString("OK", Font_16x24, Black);
@@ -292,8 +292,26 @@ void ssd1306_TestIntervalSetting(int **timeBar, unsigned int *timeInterval) {
 }
 
 
-void ssd1306_TestDurationSetting(int **timeBar, unsigned int *timeDuration) {
+void ssd1306_TestDurationSetting(unsigned int *timeDuration) {
+	ssd1306_Fill(Black);
 
+	ssd1306_FillRectangle(4, 20, 52, 44, White);
+
+	ssd1306_FillRectangle(93, 20, 124, 44, White);
+
+	char str[2] = "";
+
+	unsigned int n = (*timeDuration) / 1000;
+
+	if(durationSection == SECONDS) {
+		ssd1306_SetCursor(4, 20);
+		sprintf(str, "%02d", n);
+		ssd1306_WriteString(str, Font_16x24, Black);
+
+		ssd1306_SetCursor(93, 20);
+		ssd1306_WriteString("OK", Font_16x24, Black);
+		ssd1306_UpdateScreen();
+	}
 }
 
 

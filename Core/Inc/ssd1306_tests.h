@@ -12,7 +12,7 @@ void ssd1306_TestFonts2(void);
 
 void ssd1306_TestMenu(char*, char*, Menu_Option*);
 void ssd1306_TestIntervalSetting(int**, unsigned int*);
-void ssd1306_TestDurationSetting(int**, unsigned int*);
+void ssd1306_TestDurationSetting(unsigned int*);
 void ssd1306_TurnOff(void);
 
 void ssd1306_TestFPS(void);
@@ -46,7 +46,7 @@ typedef enum {
 extern Time_Inerval_Section *intervalSection;
 extern Time_Duration_Section *durationSection;
 
-extern short int render_blinking_span;
+//extern short int render_blinking_span;
 
 /* USER CODE END Private defines */
 

@@ -58,22 +58,24 @@ static void MX_I2C1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void getTimeFromMS(unsigned int *ms, int **clock) {
-	int days = *ms /86400000;
 	int hours = *ms / 3600000;
 	int minutes = (*ms % 3600000) / 60000;
-	int seconds = ((*ms % 3600000) % 60000) / 1000;
+	int days = *ms /86400000;
+	//int seconds = ((*ms % 3600000) % 60000) / 1000;
 	if(hours > 96) {
 		clock[0] = days;
 		clock[1] = hours;
+		first_time_unit = D;
 	}
 	else if(hours > 0) {
 		clock[0] = hours;
 		clock[1] = minutes;
+		first_time_unit = H;
 	}
-	else if(hours == 0) {
+	/*else if(hours == 0) {
 		clock[0] = minutes;
 		clock[1] = seconds;
-	}
+	}*/
 }
 
 void ApplyNewInterval() {
@@ -102,6 +104,8 @@ char *menu_list[4][2] = {
 Menu_Option *menu_option = READY;
 
 Setting_Option *setting_option = MENU;
+
+Time_Unit *first_time_unit = H;
 
 const int MENU_COUNT = 3;
 
@@ -167,6 +171,7 @@ int main(void)
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_14) == GPIO_PIN_RESET)
       {
 		  pressedUpButton = true;
+		  DisplayShutDownTime = 0;
 		  continue;
       }
 	  else if (pressedUpButton == true)
@@ -179,7 +184,7 @@ int main(void)
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
-		  else if(setting_option == INTERVAL_SETTING) {
+		  else if(*setting_option == INTERVAL_SETTING) {
 			  if(intervalSection == HOURS) {
 				  if(Interval + 3600000 <= MaxInterval) {
 					  Interval += 3600000;
@@ -206,7 +211,7 @@ int main(void)
 				  // nothing
 			  }
 			  getTimeFromMS(&Duration, timeBar);
-			  ssd1306_TestDurationSetting(timeBar, &Duration);
+			  ssd1306_TestDurationSetting(&Duration);
 		  }
 
 		  continue;
@@ -217,6 +222,7 @@ int main(void)
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_13) == GPIO_PIN_RESET)
       {
 		  pressedDownButton = true;
+		  DisplayShutDownTime = 0;
 		  continue;
       }
 	  else if (pressedDownButton == true)
@@ -256,7 +262,7 @@ int main(void)
 				  // nothing
 			  }
 			  getTimeFromMS(&Duration, timeBar);
-			  ssd1306_TestDurationSetting(timeBar, &Duration);
+			  ssd1306_TestDurationSetting(&Duration);
 		  }
 
 		  continue;
@@ -267,6 +273,7 @@ int main(void)
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET)
       {
 		  pressedLeftButton = true;
+		  DisplayShutDownTime = 0;
 		  continue;
       }
 	  else if (pressedLeftButton == true)
@@ -307,6 +314,7 @@ int main(void)
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_15) == GPIO_PIN_RESET)
       {
 		  pressedRightButton = true;
+		  DisplayShutDownTime = 0;
 		  continue;
       }
 	  else if (pressedRightButton == true)
