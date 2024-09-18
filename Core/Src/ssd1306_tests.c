@@ -305,7 +305,7 @@ void ssd1306_TestDurationSetting(unsigned int *timeDuration) {
 
 	if(durationSection == SECONDS) {
 		ssd1306_SetCursor(4, 20);
-		sprintf(str, "%02d", n);
+		sprintf(str, "%d", n);
 		ssd1306_WriteString(str, Font_16x24, Black);
 
 		ssd1306_SetCursor(93, 20);

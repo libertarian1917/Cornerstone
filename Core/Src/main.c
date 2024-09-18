@@ -60,18 +60,9 @@ static void MX_I2C1_Init(void);
 void getTimeFromMS(unsigned int *ms, int **clock) {
 	int hours = *ms / 3600000;
 	int minutes = (*ms % 3600000) / 60000;
-	int days = *ms /86400000;
 	//int seconds = ((*ms % 3600000) % 60000) / 1000;
-	if(hours > 96) {
-		clock[0] = days;
-		clock[1] = hours;
-		first_time_unit = D;
-	}
-	else if(hours > 0) {
-		clock[0] = hours;
-		clock[1] = minutes;
-		first_time_unit = H;
-	}
+	clock[0] = hours;
+	clock[1] = minutes;
 	/*else if(hours == 0) {
 		clock[0] = minutes;
 		clock[1] = seconds;
@@ -94,6 +85,15 @@ void ResetNewDuration() {
 	NewDuration = Duration;
 }
 
+void WakeUp() {
+	DisplayShutDownTime = 0;
+	if(menu_option == OFF) {
+		menu_option = READY;
+		setting_option = MENU;
+		ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
+	}
+}
+
 char *menu_list[4][2] = {
 						{"Fertig", ""},
 						{"Giess-", "Intervall"},
@@ -105,19 +105,17 @@ Menu_Option *menu_option = READY;
 
 Setting_Option *setting_option = MENU;
 
-Time_Unit *first_time_unit = H;
-
 const int MENU_COUNT = 3;
 
 bool pressedUpButton = false, pressedDownButton = false, pressedLeftButton = false, pressedRightButton = false;
 
 unsigned int Interval = 86400000; // 24 hours // 86,400,000 milliseconds //
 unsigned int NewInterval = 86400000;
-unsigned int MaxInterval = 604800000; // 7 days // 604,800,000 milliseconds //
+const unsigned int MaxInterval = 345600000; // 4 days // 345,600,000 milliseconds //
 
 unsigned int Duration = 20000; // 20 seconds // 20,000 milliseconds //
 unsigned int NewDuration = 20000;
-unsigned int MaxDuration = 600000; // 10 minutes // 600,000 milliseconds //
+const unsigned int MaxDuration = 600000; // 600 seconds // 600,000 milliseconds //
 
 int *timeBar[2] = {24, 0};
 
@@ -170,8 +168,10 @@ int main(void)
 	  HAL_Delay(100);
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_14) == GPIO_PIN_RESET)
       {
-		  pressedUpButton = true;
-		  DisplayShutDownTime = 0;
+		  if(menu_option != OFF) {
+			  pressedUpButton = true;
+		  }
+		  WakeUp();
 		  continue;
       }
 	  else if (pressedUpButton == true)
@@ -184,34 +184,34 @@ int main(void)
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
-		  else if(*setting_option == INTERVAL_SETTING) {
+		  else if(setting_option == INTERVAL_SETTING) {
 			  if(intervalSection == HOURS) {
-				  if(Interval + 3600000 <= MaxInterval) {
-					  Interval += 3600000;
+				  if(NewInterval + 3600000 <= MaxInterval) {
+					  NewInterval += 3600000;
 				  }
 			  }
 			  else if(intervalSection == MINUTES) {
-				  if(Interval + 60000 <= MaxInterval) {
-					  Interval += 60000;
+				  if(NewInterval + 60000 <= MaxInterval) {
+					  NewInterval += 60000;
 				  }
 			  }
 			  else if(intervalSection == SET_INTERVAL) {
 				  // nothing
 			  }
-			  getTimeFromMS(&Interval, timeBar);
-			  ssd1306_TestIntervalSetting(timeBar, &Interval);
+			  getTimeFromMS(&NewInterval, timeBar);
+			  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
 		  }
 		  else if(setting_option == DURATION_SETTING) {
 			  if(durationSection == SECONDS) {
-				  if(Duration <= MaxDuration) {
-					  Duration ++;
+				  if(NewDuration + 1000 <= MaxDuration) {
+					  NewDuration += 1000;
 				  }
 			  }
 			  else if(durationSection == SET_DURATION) {
 				  // nothing
 			  }
-			  getTimeFromMS(&Duration, timeBar);
-			  ssd1306_TestDurationSetting(&Duration);
+
+			  ssd1306_TestDurationSetting(&NewDuration);
 		  }
 
 		  continue;
@@ -221,8 +221,10 @@ int main(void)
 	  // DOWN - BEGIN
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_13) == GPIO_PIN_RESET)
       {
-		  pressedDownButton = true;
-		  DisplayShutDownTime = 0;
+		  if(menu_option != OFF) {
+			  pressedDownButton = true;
+		  }
+		  WakeUp();
 		  continue;
       }
 	  else if (pressedDownButton == true)
@@ -237,32 +239,32 @@ int main(void)
 		  }
 		  else if(setting_option == INTERVAL_SETTING) {
 			  if(intervalSection == HOURS) {
-				  if(Interval - 3600000 >= 0) {
-					  Interval -= 3600000;
+				  if(NewInterval >= 3600000) {
+					  NewInterval -= 3600000;
 				  }
 			  }
 			  else if(intervalSection == MINUTES) {
-				  if(Interval - 60000 >= 0) {
-					  Interval -= 60000;
+				  if(NewInterval >= 60000) {
+					  NewInterval -= 60000;
 				  }
 			  }
 			  else if(intervalSection == SET_INTERVAL) {
 				  // nothing
 			  }
-			  getTimeFromMS(&Interval, timeBar);
-			  ssd1306_TestIntervalSetting(timeBar, &Interval);
+			  getTimeFromMS(&NewInterval, timeBar);
+			  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
 		  }
 		  else if(setting_option == DURATION_SETTING) {
 			  if(durationSection == SECONDS) {
-				  if(Duration >= 0) {
-					  Duration --;
+				  if(NewDuration >= 1000) {
+					  NewDuration -= 1000;
 				  }
 			  }
 			  else if(durationSection == SET_DURATION) {
 				  // nothing
 			  }
-			  getTimeFromMS(&Duration, timeBar);
-			  ssd1306_TestDurationSetting(&Duration);
+
+			  ssd1306_TestDurationSetting(&NewDuration);
 		  }
 
 		  continue;
@@ -272,8 +274,10 @@ int main(void)
 	  // LEFT (BACK) - BEGIN
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET)
       {
-		  pressedLeftButton = true;
-		  DisplayShutDownTime = 0;
+		  if(menu_option != OFF) {
+			  pressedLeftButton = true;
+		  }
+		  WakeUp();
 		  continue;
       }
 	  else if (pressedLeftButton == true)
@@ -285,23 +289,25 @@ int main(void)
 		  }
 		  else if(setting_option == INTERVAL_SETTING) {
 			  if(intervalSection > 0) {
-				  *intervalSection--;
-				  ssd1306_TestIntervalSetting(timeBar, &Interval);
+				  intervalSection--;
+				  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
 			  }
 			  else {
-				  *intervalSection = HOURS;
-				  *setting_option = MENU;
+				  ResetNewInterval();
+				  intervalSection = HOURS;
+				  setting_option = MENU;
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
 		  else if(setting_option == DURATION_SETTING) {
 			  if(durationSection > 0) {
-				  *durationSection--;
-				  ssd1306_TestIntervalSetting(timeBar, &Interval);
+				  durationSection--;
+				  ssd1306_TestDurationSetting(&NewDuration);
 			  }
 			  else {
-				  *durationSection = SECONDS;
-				  *setting_option = MENU;
+				  ResetNewDuration();
+				  durationSection = SECONDS;
+				  setting_option = MENU;
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
@@ -313,8 +319,10 @@ int main(void)
 	  // RIGHT (OKAY) - BEGIN
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_15) == GPIO_PIN_RESET)
       {
-		  pressedRightButton = true;
-		  DisplayShutDownTime = 0;
+		  if(menu_option != OFF) {
+			  pressedRightButton = true;
+		  }
+		  WakeUp();
 		  continue;
       }
 	  else if (pressedRightButton == true)
@@ -323,19 +331,18 @@ int main(void)
 
 		  if(setting_option == MENU) {
 
-			  if(menu_option == OFF) {
-				  *menu_option = READY;
-				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
-			  }
-			  else if(menu_option == READY) {
-				  *menu_option = OFF;
+			  if(menu_option == READY) {
+				  menu_option = OFF;
 				  ssd1306_TurnOff();
 			  }
 			  else if(menu_option == INTERVAL) {
-				  *setting_option = INTERVAL_SETTING;
+				  setting_option = INTERVAL_SETTING;
+				  getTimeFromMS(&NewInterval, timeBar);
+				  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
 			  }
 			  else if(menu_option == DURATION) {
-				  *setting_option = DURATION_SETTING;
+				  setting_option = DURATION_SETTING;
+				  ssd1306_TestDurationSetting(&NewDuration);
 			  }
 			  else if(menu_option == LAST_TIME) {
 
@@ -343,25 +350,25 @@ int main(void)
 		  }
 		  else if(setting_option == INTERVAL_SETTING) {
 			  if(intervalSection < 2) {
-				  *intervalSection++;
-				  ssd1306_TestIntervalSetting(timeBar, &Interval);
+				  intervalSection++;
+				  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
 			  }
 			  else {
-				  *intervalSection = HOURS;
-				  *setting_option = MENU;
 				  ApplyNewInterval();
+				  intervalSection = HOURS;
+				  setting_option = MENU;
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
 		  else if(setting_option == DURATION_SETTING) {
 			  if(durationSection < 1) {
-				  *durationSection++;
-				  ssd1306_TestIntervalSetting(timeBar, &Interval);
+				  durationSection++;
+				  ssd1306_TestDurationSetting(&NewDuration);
 			  }
 			  else {
-				  *durationSection = SECONDS;
-				  *setting_option = MENU;
 				  ApplyNewDuration();
+				  durationSection = SECONDS;
+				  setting_option = MENU;
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
@@ -370,6 +377,7 @@ int main(void)
 	  // RIGHT (OKAY) - END
 
 	  if(DisplayShutDownTime == 199) {
+		  menu_option = OFF;
 		  ssd1306_TurnOff();
 	  }
 	  if(DisplayShutDownTime < 200) {

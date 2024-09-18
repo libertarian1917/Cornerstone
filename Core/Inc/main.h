@@ -69,6 +69,8 @@ void ApplyNewDuration(void);
 void ResetNewInterval(void);
 void ResetNewDuration(void);
 
+void WakeUp(void);
+
 
 // ENUM DEFINITION //
 
@@ -86,13 +88,6 @@ typedef enum {
 	DURATION_SETTING = 2
 
 } Setting_Option;
-
-typedef enum {
-	D = 0, // days
-	H = 1, // hours
-	M = 2, // minutes
-	//S = 3  // seconds
-} Time_Unit;
 // //
 
 // MENU VARIABLES // //
@@ -108,16 +103,14 @@ extern bool pressedUpButton, pressedDownButton, pressedLeftButton, pressedRightB
 
 extern Setting_Option *setting_option;
 
-extern Time_Unit *first_time_unit;
-
 // TIME TRACKING VARIABLES // // //
 extern unsigned int Interval;
 extern unsigned int NewInterval;
-extern unsigned int MaxInterval;
+extern const unsigned int MaxInterval;
 
 extern unsigned int Duration;
 extern unsigned int NewDuration;
-extern unsigned int MaxDuration;
+extern const unsigned int MaxDuration;
 
 extern int *timeBar[2];
 
