@@ -278,6 +278,12 @@ void ssd1306_TestIntervalSetting(int **timeBar, unsigned int *timeInterval) {
 
 	char str[2] = "";
 
+	ssd1306_SetCursor(11, 10);
+	ssd1306_WriteString(" h ", Font_6x8, Black);
+
+	ssd1306_SetCursor(53, 10);
+	ssd1306_WriteString(" min ", Font_6x8, Black);
+
 	ssd1306_SetCursor(4, 20);
 	sprintf(str, "%02d", timeBar[0]);
 	ssd1306_WriteString(str, Font_16x24, Black);
@@ -287,6 +293,7 @@ void ssd1306_TestIntervalSetting(int **timeBar, unsigned int *timeInterval) {
 	sprintf(str, "%02d", timeBar[1]);
 	ssd1306_WriteString(str, Font_16x24, Black);
 
+	ssd1306_SetCursor(92, 20);
 	ssd1306_WriteString("OK", Font_16x24, Black);
 	ssd1306_UpdateScreen();
 }
@@ -299,7 +306,7 @@ void ssd1306_TestDurationSetting(unsigned int *timeDuration) {
 
 	ssd1306_FillRectangle(93, 20, 124, 44, White);
 
-	char str[2] = "";
+	char str[3] = "";
 
 	unsigned int n = (*timeDuration) / 1000;
 

@@ -69,6 +69,8 @@ void ApplyNewDuration(void);
 void ResetNewInterval(void);
 void ResetNewDuration(void);
 
+void UpdateLastTime(void);
+
 void WakeUp(void);
 
 
@@ -114,9 +116,10 @@ extern const unsigned int MaxDuration;
 
 extern int *timeBar[2];
 
-extern unsigned int CurrentTime;
-
+extern unsigned int TimePassed;
 extern unsigned int TimeLeft;
+extern bool WasPoured;
+extern bool IsPouring;
 // // //
 
 extern int DisplayShutDownTime;

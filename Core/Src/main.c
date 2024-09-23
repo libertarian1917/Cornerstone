@@ -71,6 +71,9 @@ void getTimeFromMS(unsigned int *ms, int **clock) {
 
 void ApplyNewInterval() {
 	Interval = NewInterval;
+
+	TimePassed = 0;
+	TimeLeft = NewInterval;
 }
 
 void ApplyNewDuration() {
@@ -83,6 +86,20 @@ void ResetNewInterval() {
 
 void ResetNewDuration() {
 	NewDuration = Duration;
+}
+
+void UpdateLastTime() {
+	if(WasPoured == false) {
+		menu_list[3][0] = "noch nicht";
+		menu_list[3][1] = "verwendet";
+	}
+	else {
+		getTimeFromMS(&TimePassed, timeBar);
+		char str[9] = "";
+		sprintf(str, "vor %02d:%02d", timeBar[0], timeBar[1]);
+		menu_list[3][0] = str;
+		menu_list[3][1] = "verwendet";
+	}
 }
 
 void WakeUp() {
@@ -98,7 +115,7 @@ char *menu_list[4][2] = {
 						{"Fertig", ""},
 						{"Giess-", "Intervall"},
 						{"Giess-", "Dauer"},
-						{"12:30"}
+						{""}
 };
 
 Menu_Option *menu_option = READY;
@@ -115,13 +132,16 @@ const unsigned int MaxInterval = 345600000; // 4 days // 345,600,000 millisecond
 
 unsigned int Duration = 20000; // 20 seconds // 20,000 milliseconds //
 unsigned int NewDuration = 20000;
-const unsigned int MaxDuration = 600000; // 600 seconds // 600,000 milliseconds //
+const unsigned int MaxDuration = 900000; // 900 seconds // 900,000 milliseconds //
 
 int *timeBar[2] = {24, 0};
 
-unsigned int CurrentTime = 0;
-unsigned int TimeLeft = 0;
+unsigned int TimePassed = 0;
+unsigned int TimeLeft = Interval; // default Interval value
 int DisplayShutDownTime = 0;
+
+bool WasPoured = false;
+bool IsPouring = false;
 
 /* USER CODE END 0 */
 
@@ -181,6 +201,9 @@ int main(void)
 		  if(setting_option == MENU) {
 			  if(menu_option > 0) {
 				  menu_option --;
+				  if(menu_option == 3) {
+					  UpdateLastTime();
+				  }
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
@@ -234,6 +257,10 @@ int main(void)
 		  if(setting_option == MENU) {
 			  if(menu_option < MENU_COUNT) {
 				  menu_option ++;
+
+				  if(menu_option == 3) {
+					  UpdateLastTime();
+				  }
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
@@ -375,6 +402,34 @@ int main(void)
 		  continue;
 	  }
 	  // RIGHT (OKAY) - END
+
+
+	  // TIME COUNT //
+	 //     \/     //
+
+	  if(IsPouring) {
+		  // PA4 - VALVE // PA5 - PUMP //
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+		  HAL_Delay(500);
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+		  HAL_Delay(Duration);
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+
+		  TimeLeft = Interval;
+		  TimePassed = 0;
+		  WasPoured = true;
+		  IsPouring = false;
+	  }
+
+	  if(menu_option == OFF) {
+		  TimeLeft -= 100;
+		  TimePassed += 100;
+
+		  if(TimeLeft == 0) {
+			  IsPouring = true;
+		  }
+	  }
 
 	  if(DisplayShutDownTime == 199) {
 		  menu_option = OFF;
