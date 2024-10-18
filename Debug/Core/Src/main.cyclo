@@ -4,9 +4,10 @@
 ../Core/Src/main.c:83:6:ResetNewInterval	1
 ../Core/Src/main.c:87:6:ResetNewDuration	1
 ../Core/Src/main.c:91:6:UpdateLastTime	2
-../Core/Src/main.c:105:6:WakeUp	2
-../Core/Src/main.c:152:5:main	53
-../Core/Src/main.c:449:6:SystemClock_Config	3
-../Core/Src/main.c:491:13:MX_I2C1_Init	2
-../Core/Src/main.c:525:13:MX_GPIO_Init	1
-../Core/Src/main.c:545:6:Error_Handler	1
+../Core/Src/main.c:104:6:UpdateNextTime	1
+../Core/Src/main.c:111:6:WakeUp	2
+../Core/Src/main.c:161:5:main	56
+../Core/Src/main.c:478:6:SystemClock_Config	3
+../Core/Src/main.c:520:13:MX_I2C1_Init	2
+../Core/Src/main.c:554:13:MX_GPIO_Init	1
+../Core/Src/main.c:603:6:Error_Handler	1

@@ -57,7 +57,7 @@ static void MX_I2C1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void getTimeFromMS(unsigned int *ms, int **clock) {
+void getTimeFromMS(unsigned int *ms, int *clock) {
 	int hours = *ms / 3600000;
 	int minutes = (*ms % 3600000) / 60000;
 	//int seconds = ((*ms % 3600000) % 60000) / 1000;
@@ -94,12 +94,18 @@ void UpdateLastTime() {
 		menu_list[3][1] = "verwendet";
 	}
 	else {
-		getTimeFromMS(&TimePassed, timeBar);
-		char str[9] = "";
+		getTimeFromMS(&TimePassed, &timeBar);
 		sprintf(str, "vor %02d:%02d", timeBar[0], timeBar[1]);
 		menu_list[3][0] = str;
 		menu_list[3][1] = "verwendet";
 	}
+}
+
+void UpdateNextTime() {
+	getTimeFromMS(&TimeLeft, &timeBar);
+	sprintf(str, "noch %02d:%02d", timeBar[0], timeBar[1]);
+	menu_list[4][0] = str;
+	menu_list[4][1] = "zum Giessen";
 }
 
 void WakeUp() {
@@ -111,18 +117,21 @@ void WakeUp() {
 	}
 }
 
-char *menu_list[4][2] = {
-						{"Fertig", ""},
-						{"Giess-", "Intervall"},
-						{"Giess-", "Dauer"},
-						{""}
+char *menu_list[5][2] = {
+						{"Fertig", ""},           // 0
+						{"Giess-", "Intervall"},  // 1
+						{"Giess-", "Dauer"},      // 2
+						{""},                     // 3
+						{""}                      // 4
 };
 
-Menu_Option *menu_option = READY;
+Menu_Option *menu_option = OFF;
+
+char str[11] = "";
 
 Setting_Option *setting_option = MENU;
 
-const int MENU_COUNT = 3;
+const int MENU_COUNT = 4;
 
 bool pressedUpButton = false, pressedDownButton = false, pressedLeftButton = false, pressedRightButton = false;
 
@@ -134,10 +143,10 @@ unsigned int Duration = 20000; // 20 seconds // 20,000 milliseconds //
 unsigned int NewDuration = 20000;
 const unsigned int MaxDuration = 900000; // 900 seconds // 900,000 milliseconds //
 
-int *timeBar[2] = {24, 0};
+int timeBar[2] = {0, 0};
 
 unsigned int TimePassed = 0;
-unsigned int TimeLeft = Interval; // default Interval value
+unsigned int TimeLeft = 86400000; // default Interval value
 int DisplayShutDownTime = 0;
 
 bool WasPoured = false;
@@ -180,29 +189,37 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Infinite loop */
-  while (1)
+  /* USER CODE BEGIN WHILE */
+  while(true)
   {
-	/* USER CODE BEGIN WHILE */
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
 
 	  // UP - BEGIN
 	  HAL_Delay(100);
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_14) == GPIO_PIN_RESET)
       {
-		  if(menu_option != OFF) {
-			  pressedUpButton = true;
-		  }
-		  WakeUp();
+		  pressedUpButton = true;
 		  continue;
       }
 	  else if (pressedUpButton == true)
 	  {
 		  pressedUpButton = false;
+		  DisplayShutDownTime = 0;
+		  if(menu_option == OFF) {
+			  WakeUp();
+			  continue;
+		  }
 
 		  if(setting_option == MENU) {
 			  if(menu_option > 0) {
 				  menu_option --;
 				  if(menu_option == 3) {
 					  UpdateLastTime();
+				  }
+				  else if(menu_option == 4) {
+					  UpdateNextTime();
 				  }
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
@@ -221,7 +238,7 @@ int main(void)
 			  else if(intervalSection == SET_INTERVAL) {
 				  // nothing
 			  }
-			  getTimeFromMS(&NewInterval, timeBar);
+			  getTimeFromMS(&NewInterval, &timeBar);
 			  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
 		  }
 		  else if(setting_option == DURATION_SETTING) {
@@ -244,15 +261,17 @@ int main(void)
 	  // DOWN - BEGIN
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_13) == GPIO_PIN_RESET)
       {
-		  if(menu_option != OFF) {
-			  pressedDownButton = true;
-		  }
-		  WakeUp();
+		  pressedDownButton = true;
 		  continue;
       }
 	  else if (pressedDownButton == true)
 	  {
 		  pressedDownButton = false;
+		  DisplayShutDownTime = 0;
+		  if(menu_option == OFF) {
+			  WakeUp();
+			  continue;
+		  }
 
 		  if(setting_option == MENU) {
 			  if(menu_option < MENU_COUNT) {
@@ -260,6 +279,9 @@ int main(void)
 
 				  if(menu_option == 3) {
 					  UpdateLastTime();
+				  }
+				  else if(menu_option == 4) {
+					  UpdateNextTime();
 				  }
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
@@ -278,7 +300,7 @@ int main(void)
 			  else if(intervalSection == SET_INTERVAL) {
 				  // nothing
 			  }
-			  getTimeFromMS(&NewInterval, timeBar);
+			  getTimeFromMS(&NewInterval, &timeBar);
 			  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
 		  }
 		  else if(setting_option == DURATION_SETTING) {
@@ -301,15 +323,17 @@ int main(void)
 	  // LEFT (BACK) - BEGIN
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_12) == GPIO_PIN_RESET)
       {
-		  if(menu_option != OFF) {
-			  pressedLeftButton = true;
-		  }
-		  WakeUp();
+		  pressedLeftButton = true;
 		  continue;
       }
 	  else if (pressedLeftButton == true)
 	  {
 		  pressedLeftButton = false;
+		  DisplayShutDownTime = 0;
+		  if(menu_option == OFF) {
+			  WakeUp();
+			  continue;
+		  }
 
 		  if(setting_option == MENU) {
 			  // nothing
@@ -346,15 +370,17 @@ int main(void)
 	  // RIGHT (OKAY) - BEGIN
 	  if(HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_15) == GPIO_PIN_RESET)
       {
-		  if(menu_option != OFF) {
-			  pressedRightButton = true;
-		  }
-		  WakeUp();
+		  pressedRightButton = true;
 		  continue;
       }
 	  else if (pressedRightButton == true)
 	  {
 		  pressedRightButton = false;
+		  DisplayShutDownTime = 0;
+		  if(menu_option == OFF) {
+			  WakeUp();
+			  continue;
+		  }
 
 		  if(setting_option == MENU) {
 
@@ -364,7 +390,7 @@ int main(void)
 			  }
 			  else if(menu_option == INTERVAL) {
 				  setting_option = INTERVAL_SETTING;
-				  getTimeFromMS(&NewInterval, timeBar);
+				  getTimeFromMS(&NewInterval, &timeBar);
 				  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
 			  }
 			  else if(menu_option == DURATION) {
@@ -372,6 +398,9 @@ int main(void)
 				  ssd1306_TestDurationSetting(&NewDuration);
 			  }
 			  else if(menu_option == LAST_TIME) {
+
+			  }
+			  else if(menu_option == NEXT_TIME) {
 
 			  }
 		  }
@@ -435,12 +464,11 @@ int main(void)
 		  menu_option = OFF;
 		  ssd1306_TurnOff();
 	  }
-	  if(DisplayShutDownTime < 200) {
+	  if(DisplayShutDownTime < 200 && setting_option == MENU) {
 		  DisplayShutDownTime++;
 	  }
-
-	/* USER CODE END WHILE */
   }
+  /* USER CODE END 3 */
 }
 
 /**
@@ -525,11 +553,40 @@ static void MX_I2C1_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(Blue_Led_GPIO_Port, Blue_Led_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, Valve_Pin|Pump_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : Blue_Led_Pin */
+  GPIO_InitStruct.Pin = Blue_Led_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(Blue_Led_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Valve_Pin Pump_Pin */
+  GPIO_InitStruct.Pin = Valve_Pin|Pump_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Up_Pin Down_Pin Left_Pin Right_Pin */
+  GPIO_InitStruct.Pin = Up_Pin|Down_Pin|Left_Pin|Right_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

@@ -258,7 +258,7 @@ void ssd1306_TestMenu(char *first_row, char *second_row, Menu_Option *current_op
     ssd1306_WriteString(first_row, Font_11x18, White);
     ssd1306_SetCursor(0, 14+18);
     ssd1306_WriteString(second_row, Font_11x18, White);
-    if(current_option <= 2) {
+    if(current_option < MENU_COUNT) {
     	ssd1306_DrawBitmap(32,50,bitmap_arrow_down_64x14,64,14,White);
     }
     ssd1306_UpdateScreen();
@@ -266,59 +266,89 @@ void ssd1306_TestMenu(char *first_row, char *second_row, Menu_Option *current_op
 }
 
 
-void ssd1306_TestIntervalSetting(int **timeBar, unsigned int *timeInterval) {
+void ssd1306_TestIntervalSetting(int *timeBar, unsigned int *timeInterval) {
 
 	ssd1306_Fill(Black);
 
-	ssd1306_FillRectangle( 4, 20,  36, 44, White);
-
-	ssd1306_FillRectangle(51, 20,  84, 44, White);
-
-	ssd1306_FillRectangle(93, 20, 124, 44, White);
-
 	char str[2] = "";
-
-	ssd1306_SetCursor(11, 10);
-	ssd1306_WriteString(" h ", Font_6x8, Black);
-
-	ssd1306_SetCursor(53, 10);
-	ssd1306_WriteString(" min ", Font_6x8, Black);
-
-	ssd1306_SetCursor(4, 20);
 	sprintf(str, "%02d", timeBar[0]);
-	ssd1306_WriteString(str, Font_16x24, Black);
 
-	ssd1306_WriteString(":", Font_16x24, Black);
+	if(intervalSection == HOURS) {
+		ssd1306_FillRectangle( 4, 20,  37, 44, White);
+		ssd1306_SetCursor(11, 10);
+		ssd1306_WriteString(" h ", Font_6x8, Black);
+		ssd1306_SetCursor(5, 20);
+		ssd1306_WriteString(str, Font_16x24, Black);
+	}
+	else {
+		ssd1306_SetCursor(11, 10);// added
+		ssd1306_WriteString(" h ", Font_6x8, White);
+		ssd1306_SetCursor(5, 20);
+		ssd1306_WriteString(str, Font_16x24, White);
+	}
 
+	ssd1306_WriteString(":", Font_16x24, White);
 	sprintf(str, "%02d", timeBar[1]);
-	ssd1306_WriteString(str, Font_16x24, Black);
+
+	if(intervalSection == MINUTES) {
+		ssd1306_FillRectangle(52, 20,  85, 44, White);
+		ssd1306_WriteString(str, Font_16x24, Black);
+		ssd1306_SetCursor(53, 10);
+		ssd1306_WriteString(" min ", Font_6x8, Black);
+	}
+	else {
+		ssd1306_WriteString(str, Font_16x24, White);
+		ssd1306_SetCursor(53, 10);
+		ssd1306_WriteString(" min ", Font_6x8, White);
+	}
 
 	ssd1306_SetCursor(92, 20);
-	ssd1306_WriteString("OK", Font_16x24, Black);
+
+	if(intervalSection == SET_INTERVAL) {
+		ssd1306_FillRectangle(91, 20, 124, 44, White);
+		ssd1306_WriteString("OK", Font_16x24, Black);
+	}
+	else {
+		ssd1306_WriteString("OK", Font_16x24, White);
+	}
+
 	ssd1306_UpdateScreen();
 }
 
 
 void ssd1306_TestDurationSetting(unsigned int *timeDuration) {
 	ssd1306_Fill(Black);
-
-	ssd1306_FillRectangle(4, 20, 52, 44, White);
-
-	ssd1306_FillRectangle(93, 20, 124, 44, White);
-
 	char str[3] = "";
-
 	unsigned int n = (*timeDuration) / 1000;
 
-	if(durationSection == SECONDS) {
-		ssd1306_SetCursor(4, 20);
-		sprintf(str, "%d", n);
-		ssd1306_WriteString(str, Font_16x24, Black);
+	sprintf(str, "%d", n);
 
-		ssd1306_SetCursor(93, 20);
-		ssd1306_WriteString("OK", Font_16x24, Black);
-		ssd1306_UpdateScreen();
+	if(durationSection == SECONDS) {
+		ssd1306_FillRectangle(4, 20, 52, 44, White);
+		ssd1306_SetCursor(19, 10);
+		ssd1306_WriteString("sec", Font_6x8, Black);
+		ssd1306_SetCursor(5, 20);
+		ssd1306_WriteString(str, Font_16x24, Black);
 	}
+	else {
+		ssd1306_SetCursor(19, 10);
+		ssd1306_WriteString("sec", Font_6x8, White);
+		ssd1306_SetCursor(5, 20);
+		ssd1306_WriteString(str, Font_16x24, White);
+
+	}
+
+	ssd1306_SetCursor(92, 20);
+
+	if(durationSection == SET_DURATION) {
+		ssd1306_FillRectangle(91, 20, 124, 44, White);
+		ssd1306_WriteString("OK", Font_16x24, Black);
+	}
+	else {
+		ssd1306_WriteString("OK", Font_16x24, White);
+	}
+
+	ssd1306_UpdateScreen();
 }
 
 

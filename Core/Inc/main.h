@@ -28,11 +28,10 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-#include <stdbool.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -58,10 +57,24 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define Blue_Led_Pin GPIO_PIN_13
+#define Blue_Led_GPIO_Port GPIOC
+#define Valve_Pin GPIO_PIN_4
+#define Valve_GPIO_Port GPIOA
+#define Pump_Pin GPIO_PIN_5
+#define Pump_GPIO_Port GPIOA
+#define Up_Pin GPIO_PIN_12
+#define Up_GPIO_Port GPIOB
+#define Down_Pin GPIO_PIN_13
+#define Down_GPIO_Port GPIOB
+#define Left_Pin GPIO_PIN_14
+#define Left_GPIO_Port GPIOB
+#define Right_Pin GPIO_PIN_15
+#define Right_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
-void getTimeFromMS(unsigned int*, int**);
+void getTimeFromMS(unsigned int*, int*);
 
 void ApplyNewInterval(void);
 void ApplyNewDuration(void);
@@ -70,6 +83,7 @@ void ResetNewInterval(void);
 void ResetNewDuration(void);
 
 void UpdateLastTime(void);
+void UpdateNextTime(void);
 
 void WakeUp(void);
 
@@ -81,7 +95,8 @@ typedef enum {
 	READY = 0,
 	INTERVAL = 1,
 	DURATION = 2,
-	LAST_TIME = 3
+	LAST_TIME = 3,
+	NEXT_TIME = 4
 } Menu_Option;
 
 typedef enum {
@@ -95,9 +110,10 @@ typedef enum {
 // MENU VARIABLES // //
 extern const int MENU_COUNT;
 
-extern char *menu_list[4][2];
+extern char *menu_list[5][2];
 
 extern Menu_Option *menu_option;
+extern char str[11];
 // //
 
 // Logical variables for button state tracking
@@ -114,7 +130,7 @@ extern unsigned int Duration;
 extern unsigned int NewDuration;
 extern const unsigned int MaxDuration;
 
-extern int *timeBar[2];
+extern int timeBar[2];
 
 extern unsigned int TimePassed;
 extern unsigned int TimeLeft;
