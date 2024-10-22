@@ -11,8 +11,9 @@ void ssd1306_TestFonts1(void);
 void ssd1306_TestFonts2(void);
 
 void ssd1306_TestMenu(char*, char*, Menu_Option*);
-void ssd1306_TestIntervalSetting(int*, unsigned int*);
-void ssd1306_TestDurationSetting(unsigned int*);
+void ssd1306_TestIntervalSetting(int*, uint32_t);
+void ssd1306_TestDurationSetting(uint32_t);
+void ssd1306_TestZeroingTimes(void);
 void ssd1306_TurnOff(void);
 
 void ssd1306_TestFPS(void);

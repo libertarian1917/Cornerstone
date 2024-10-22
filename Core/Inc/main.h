@@ -74,7 +74,10 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN Private defines */
 
-void getTimeFromMS(unsigned int*, int*);
+void getTimeFromMS(uint32_t, int*);
+
+void SaveToFlash(void);
+void LoadFromFlash(void);
 
 void ApplyNewInterval(void);
 void ApplyNewDuration(void);
@@ -84,6 +87,9 @@ void ResetNewDuration(void);
 
 void UpdateLastTime(void);
 void UpdateNextTime(void);
+
+void SetPouringCountInMenuList(void);
+void ResetPouringCount(void);
 
 void WakeUp(void);
 
@@ -96,21 +102,22 @@ typedef enum {
 	INTERVAL = 1,
 	DURATION = 2,
 	LAST_TIME = 3,
-	NEXT_TIME = 4
+	NEXT_TIME = 4,
+	TIMES_POURED = 5
 } Menu_Option;
 
 typedef enum {
 	MENU = 0,
 	INTERVAL_SETTING = 1,
-	DURATION_SETTING = 2
-
+	DURATION_SETTING = 2,
+	TIMES_POURED_ZEROING = 3
 } Setting_Option;
 // //
 
 // MENU VARIABLES // //
 extern const int MENU_COUNT;
 
-extern char *menu_list[5][2];
+extern char *menu_list[6][2];
 
 extern Menu_Option *menu_option;
 extern char str[11];
@@ -122,18 +129,21 @@ extern bool pressedUpButton, pressedDownButton, pressedLeftButton, pressedRightB
 extern Setting_Option *setting_option;
 
 // TIME TRACKING VARIABLES // // //
-extern unsigned int Interval;
-extern unsigned int NewInterval;
-extern const unsigned int MaxInterval;
+extern uint32_t Interval; // SAVED AS 1ST
+extern uint32_t NewInterval;
+extern const uint32_t MaxInterval;
 
-extern unsigned int Duration;
-extern unsigned int NewDuration;
-extern const unsigned int MaxDuration;
+extern uint32_t Duration; // SAVED AS 2ND
+extern uint32_t NewDuration;
+extern const uint32_t MaxDuration;
 
 extern int timeBar[2];
 
-extern unsigned int TimePassed;
-extern unsigned int TimeLeft;
+extern uint32_t TimesWasPoured; // SAVED AS 3RD
+extern uint32_t Address;
+
+extern uint32_t TimePassed;
+extern uint32_t TimeLeft;
 extern bool WasPoured;
 extern bool IsPouring;
 // // //

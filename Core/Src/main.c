@@ -57,9 +57,9 @@ static void MX_I2C1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void getTimeFromMS(unsigned int *ms, int *clock) {
-	int hours = *ms / 3600000;
-	int minutes = (*ms % 3600000) / 60000;
+void getTimeFromMS(uint32_t ms, int *clock) {
+	int hours = ms / 3600000;
+	int minutes = (ms % 3600000) / 60000;
 	//int seconds = ((*ms % 3600000) % 60000) / 1000;
 	clock[0] = hours;
 	clock[1] = minutes;
@@ -67,6 +67,40 @@ void getTimeFromMS(unsigned int *ms, int *clock) {
 		clock[0] = minutes;
 		clock[1] = seconds;
 	}*/
+}
+
+void SaveToFlash() {
+    // Открываем доступ к флэш-памяти для записи
+    HAL_FLASH_Unlock();
+
+    // Стираем сектор 6 перед записью
+    FLASH_Erase_Sector(FLASH_SECTOR_6, VOLTAGE_RANGE_3);
+
+    // Writing Interval value to permanent memory
+    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, Address, Interval);
+
+    // Writing Duration
+    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, Address + 4, Duration);
+
+    // Writing how many times irrigation system has poured
+    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, Address + 8, TimesWasPoured);
+
+    // Закрываем доступ к флэш-памяти после записи
+    HAL_FLASH_Lock();
+}
+
+void LoadFromFlash() {
+    // Reading of Interval value and saving in variable at address 0x08040000
+    Interval = *(__IO uint32_t*)Address;
+    NewInterval = Interval;
+    TimeLeft = Interval;
+
+    // Reading Duration from the address 0x08040004
+    Duration = *(__IO uint32_t*)(Address + 4);
+    NewDuration = Duration;
+
+    // Reading TimesWasPoured at the address 0x08040008
+    TimesWasPoured = *(__IO uint32_t*)(Address + 8);
 }
 
 void ApplyNewInterval() {
@@ -94,7 +128,7 @@ void UpdateLastTime() {
 		menu_list[3][1] = "verwendet";
 	}
 	else {
-		getTimeFromMS(&TimePassed, &timeBar);
+		getTimeFromMS(TimePassed, timeBar);
 		sprintf(str, "vor %02d:%02d", timeBar[0], timeBar[1]);
 		menu_list[3][0] = str;
 		menu_list[3][1] = "verwendet";
@@ -102,10 +136,20 @@ void UpdateLastTime() {
 }
 
 void UpdateNextTime() {
-	getTimeFromMS(&TimeLeft, &timeBar);
+	getTimeFromMS(TimeLeft, timeBar);
 	sprintf(str, "noch %02d:%02d", timeBar[0], timeBar[1]);
 	menu_list[4][0] = str;
-	menu_list[4][1] = "zum Giessen";
+	//menu_list[4][1] = "zum Giessen";
+}
+
+void SetPouringCountInMenuList() {
+	sprintf(str, "%d mal", TimesWasPoured);
+	menu_list[5][0] = str;
+
+}
+
+void ResetPouringCount() {
+	TimesWasPoured = 0;
 }
 
 void WakeUp() {
@@ -117,12 +161,13 @@ void WakeUp() {
 	}
 }
 
-char *menu_list[5][2] = {
+char *menu_list[6][2] = {
 						{"Fertig", ""},           // 0
 						{"Giess-", "Intervall"},  // 1
 						{"Giess-", "Dauer"},      // 2
 						{""},                     // 3
-						{""}                      // 4
+						{"", "zum Giessen"},      // 4
+						{"", "gegossen"}          // 5
 };
 
 Menu_Option *menu_option = OFF;
@@ -131,22 +176,25 @@ char str[11] = "";
 
 Setting_Option *setting_option = MENU;
 
-const int MENU_COUNT = 4;
+const int MENU_COUNT = 5;
 
 bool pressedUpButton = false, pressedDownButton = false, pressedLeftButton = false, pressedRightButton = false;
 
-unsigned int Interval = 86400000; // 24 hours // 86,400,000 milliseconds //
-unsigned int NewInterval = 86400000;
-const unsigned int MaxInterval = 345600000; // 4 days // 345,600,000 milliseconds //
+uint32_t Interval = 86400000; // 24 hours // 86,400,000 milliseconds //
+uint32_t NewInterval = 86400000;
+const uint32_t MaxInterval = 345600000; // 4 days // 345,600,000 milliseconds //
 
-unsigned int Duration = 20000; // 20 seconds // 20,000 milliseconds //
-unsigned int NewDuration = 20000;
-const unsigned int MaxDuration = 900000; // 900 seconds // 900,000 milliseconds //
+uint32_t Duration = 20000; // 20 seconds // 20,000 milliseconds //
+uint32_t NewDuration = 20000;
+const uint32_t MaxDuration = 900000; // 900 seconds // 900,000 milliseconds //
 
 int timeBar[2] = {0, 0};
 
-unsigned int TimePassed = 0;
-unsigned int TimeLeft = 86400000; // default Interval value
+uint32_t TimesWasPoured = 0;
+uint32_t Address = 0x08040000;
+
+uint32_t TimePassed = 0;
+uint32_t TimeLeft = 86400000; // default Interval value
 int DisplayShutDownTime = 0;
 
 bool WasPoured = false;
@@ -186,6 +234,7 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   ssd1306_Init();
+  LoadFromFlash();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -221,6 +270,9 @@ int main(void)
 				  else if(menu_option == 4) {
 					  UpdateNextTime();
 				  }
+				  else if(menu_option == 5) {
+					  SetPouringCountInMenuList();
+				  }
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
@@ -238,8 +290,8 @@ int main(void)
 			  else if(intervalSection == SET_INTERVAL) {
 				  // nothing
 			  }
-			  getTimeFromMS(&NewInterval, &timeBar);
-			  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
+			  getTimeFromMS(NewInterval, timeBar);
+			  ssd1306_TestIntervalSetting(timeBar, NewInterval);
 		  }
 		  else if(setting_option == DURATION_SETTING) {
 			  if(durationSection == SECONDS) {
@@ -251,7 +303,10 @@ int main(void)
 				  // nothing
 			  }
 
-			  ssd1306_TestDurationSetting(&NewDuration);
+			  ssd1306_TestDurationSetting(NewDuration);
+		  }
+		  else if(setting_option == TIMES_POURED_ZEROING) {
+			  ////////////////
 		  }
 
 		  continue;
@@ -283,6 +338,9 @@ int main(void)
 				  else if(menu_option == 4) {
 					  UpdateNextTime();
 				  }
+				  else if(menu_option == 5) {
+					  SetPouringCountInMenuList();
+				  }
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
@@ -300,8 +358,8 @@ int main(void)
 			  else if(intervalSection == SET_INTERVAL) {
 				  // nothing
 			  }
-			  getTimeFromMS(&NewInterval, &timeBar);
-			  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
+			  getTimeFromMS(NewInterval, timeBar);
+			  ssd1306_TestIntervalSetting(timeBar, NewInterval);
 		  }
 		  else if(setting_option == DURATION_SETTING) {
 			  if(durationSection == SECONDS) {
@@ -313,7 +371,10 @@ int main(void)
 				  // nothing
 			  }
 
-			  ssd1306_TestDurationSetting(&NewDuration);
+			  ssd1306_TestDurationSetting(NewDuration);
+		  }
+		  else if(setting_option == TIMES_POURED_ZEROING) {
+			  /////////////////
 		  }
 
 		  continue;
@@ -341,7 +402,7 @@ int main(void)
 		  else if(setting_option == INTERVAL_SETTING) {
 			  if(intervalSection > 0) {
 				  intervalSection--;
-				  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
+				  ssd1306_TestIntervalSetting(timeBar, NewInterval);
 			  }
 			  else {
 				  ResetNewInterval();
@@ -353,7 +414,7 @@ int main(void)
 		  else if(setting_option == DURATION_SETTING) {
 			  if(durationSection > 0) {
 				  durationSection--;
-				  ssd1306_TestDurationSetting(&NewDuration);
+				  ssd1306_TestDurationSetting(NewDuration);
 			  }
 			  else {
 				  ResetNewDuration();
@@ -361,6 +422,10 @@ int main(void)
 				  setting_option = MENU;
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
+		  }
+		  else if(setting_option == TIMES_POURED_ZEROING) {
+			  setting_option = MENU;
+			  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 		  }
 
 		  continue;
@@ -390,12 +455,12 @@ int main(void)
 			  }
 			  else if(menu_option == INTERVAL) {
 				  setting_option = INTERVAL_SETTING;
-				  getTimeFromMS(&NewInterval, &timeBar);
-				  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
+				  getTimeFromMS(NewInterval, timeBar);
+				  ssd1306_TestIntervalSetting(timeBar, NewInterval);
 			  }
 			  else if(menu_option == DURATION) {
 				  setting_option = DURATION_SETTING;
-				  ssd1306_TestDurationSetting(&NewDuration);
+				  ssd1306_TestDurationSetting(NewDuration);
 			  }
 			  else if(menu_option == LAST_TIME) {
 
@@ -403,14 +468,19 @@ int main(void)
 			  else if(menu_option == NEXT_TIME) {
 
 			  }
+			  else if(menu_option == TIMES_POURED) {
+				  setting_option = TIMES_POURED_ZEROING;
+				  ssd1306_TestZeroingTimes();
+			  }
 		  }
 		  else if(setting_option == INTERVAL_SETTING) {
 			  if(intervalSection < 2) {
 				  intervalSection++;
-				  ssd1306_TestIntervalSetting(timeBar, &NewInterval);
+				  ssd1306_TestIntervalSetting(timeBar, NewInterval);
 			  }
 			  else {
 				  ApplyNewInterval();
+				  SaveToFlash();
 				  intervalSection = HOURS;
 				  setting_option = MENU;
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
@@ -419,15 +489,23 @@ int main(void)
 		  else if(setting_option == DURATION_SETTING) {
 			  if(durationSection < 1) {
 				  durationSection++;
-				  ssd1306_TestDurationSetting(&NewDuration);
+				  ssd1306_TestDurationSetting(NewDuration);
 			  }
 			  else {
 				  ApplyNewDuration();
+				  SaveToFlash();
 				  durationSection = SECONDS;
 				  setting_option = MENU;
 				  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
 			  }
 		  }
+		  else if(setting_option == TIMES_POURED_ZEROING) {
+			  ResetPouringCount();
+			  SetPouringCountInMenuList();
+			  setting_option = MENU;
+			  ssd1306_TestMenu(menu_list[(int)menu_option][0], menu_list[(int)menu_option][1], menu_option);
+		  }
+
 		  continue;
 	  }
 	  // RIGHT (OKAY) - END
@@ -448,6 +526,8 @@ int main(void)
 		  TimeLeft = Interval;
 		  TimePassed = 0;
 		  WasPoured = true;
+		  TimesWasPoured++;
+		  SaveToFlash();
 		  IsPouring = false;
 	  }
 

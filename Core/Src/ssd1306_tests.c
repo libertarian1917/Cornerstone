@@ -266,7 +266,7 @@ void ssd1306_TestMenu(char *first_row, char *second_row, Menu_Option *current_op
 }
 
 
-void ssd1306_TestIntervalSetting(int *timeBar, unsigned int *timeInterval) {
+void ssd1306_TestIntervalSetting(int *timeBar, uint32_t timeInterval) {
 
 	ssd1306_Fill(Black);
 
@@ -316,12 +316,13 @@ void ssd1306_TestIntervalSetting(int *timeBar, unsigned int *timeInterval) {
 }
 
 
-void ssd1306_TestDurationSetting(unsigned int *timeDuration) {
+void ssd1306_TestDurationSetting(uint32_t timeDuration) {
+
 	ssd1306_Fill(Black);
 	char str[3] = "";
-	unsigned int n = (*timeDuration) / 1000;
+	uint32_t n = (timeDuration) / 1000;
 
-	sprintf(str, "%d", n);
+	sprintf(str, "%03d", n);
 
 	if(durationSection == SECONDS) {
 		ssd1306_FillRectangle(4, 20, 52, 44, White);
@@ -347,6 +348,24 @@ void ssd1306_TestDurationSetting(unsigned int *timeDuration) {
 	else {
 		ssd1306_WriteString("OK", Font_16x24, White);
 	}
+
+	ssd1306_UpdateScreen();
+}
+
+// Function for graphical zeroing of pouring times
+void ssd1306_TestZeroingTimes() {
+	ssd1306_Fill(Black);
+
+	ssd1306_SetCursor(4, 17);
+	ssd1306_WriteString("auf", Font_7x10, White);
+	ssd1306_SetCursor(4, 27);
+	ssd1306_WriteString("Null", Font_7x10, White);
+	ssd1306_SetCursor(4, 37);
+	ssd1306_WriteString("setzen", Font_7x10, White);
+
+	ssd1306_SetCursor(71, 20);
+	ssd1306_FillRectangle(70, 18, 104, 46, White);
+	ssd1306_WriteString("OK", Font_16x24, Black);
 
 	ssd1306_UpdateScreen();
 }
